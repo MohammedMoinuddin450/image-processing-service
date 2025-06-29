@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import com.imageProcessing.demo.security.jWT.jwtFilter;
 import com.imageProcessing.demo.security.usedDetails.userDetailsImplService;
 
@@ -27,11 +26,7 @@ import lombok.AllArgsConstructor;
 public class securityConfig {
 
     private userDetailsImplService usd;
-
-    @Bean
-    public jwtFilter jwtFilt(){
-        return new jwtFilter();
-    }
+    private jwtFilter jwtFilter;
 
     @Bean
     public BCryptPasswordEncoder encodePassword(){
@@ -55,10 +50,10 @@ public class securityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth->auth
-        .requestMatchers("/image").authenticated()
+        .requestMatchers("/auth").authenticated()
         .anyRequest().permitAll());
         http.authenticationProvider(authprovider());
-        http.addFilterBefore(jwtFilt(),UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter,UsernamePasswordAuthenticationFilter.class);
         return http.build();
         
     }

@@ -4,15 +4,16 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.imageProcessing.demo.security.usedDetails.userDetailsImpl;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+
 
 @Component
 public class jwtUtils {
@@ -25,13 +26,13 @@ public class jwtUtils {
 
     public String getJwtHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if(bearerToken!=null && bearerToken.startsWith("bearer ")){
+        if(bearerToken!=null && bearerToken.startsWith("Bearer ")){
             return bearerToken.substring(7);
         }
         return null;
     }
 
-    public String generateToken(userDetailsImpl userDetails){
+    public String generateToken(UserDetails userDetails){
         String username = userDetails.getUsername();
         
         return Jwts.builder()

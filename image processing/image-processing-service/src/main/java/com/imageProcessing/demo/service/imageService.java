@@ -2,8 +2,6 @@ package com.imageProcessing.demo.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
+
+import com.imageProcessing.demo.Dtos.imageResponse;
 import com.imageProcessing.demo.model.Image;
 import com.imageProcessing.demo.model.User;
 import com.imageProcessing.demo.repos.imageRepo;
@@ -22,6 +22,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -40,7 +41,7 @@ public class imageService {
     @Value("{R2_ACCOUNTID}")
     private String r2AccountId;
    
-    public Map<String, String> uploadImage(MultipartFile file, Authentication authentication) throws S3Exception, AwsServiceException, SdkClientException, IOException{
+    public imageResponse uploadImage(MultipartFile file, Authentication authentication) throws S3Exception, AwsServiceException, SdkClientException, IOException{
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new SecurityException("User is not authenticated");
         }
@@ -76,14 +77,52 @@ public class imageService {
                 .build();
 
         imagesRepository.save(uploadedImage);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("imageId", String.valueOf(uploadedImage.getImageId()));
-        response.put("fileName", fileName);
-        response.put("fileUrl", fileUrl);
-        response.put("fileType", file.getContentType());
-        response.put("size", String.valueOf(file.getSize()));
+        imageResponse response=new imageResponse();
+        response.setR2Url(fileUrl);
+        response.setFileName(fileName);
+        response.setFileType(fileExtension);
+        response.setFileSize(file.getSize());
+        
         return response;
+    }
 
+    public imageResponse getImageData(String id) {
+        Image image = imagesRepository.findById(Integer.parseInt(id))
+                .orElseThrow(() -> {
+                    return new IllegalArgumentException("Image not found");
+                });
+        imageResponse imageData=new imageResponse();
+        imageData.setImageId(image.getImageId());
+        imageData.setR2Url(image.getR2url());
+        imageData.setFileName(image.getFilename());
+        imageData.setFileType(image.getFiletype());
+        imageData.setFileSize(image.getFileSize());
+
+        return imageData;
+    }
+
+    public void deleteImage(String id, Authentication authentication) throws IOException {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new SecurityException("User is not authenticated");
+        }
+
+        int userId = (int) authentication.getCredentials();
+        Image image = imagesRepository.findById(Integer.parseInt(id))
+                .orElseThrow(() -> {
+
+                    return new IllegalArgumentException("Image not found");
+                });
+
+        if (image.getUserid()==userId) {
+            throw new SecurityException("User is not authorized to delete this image");
+        }
+
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(image.getFilename())
+                .build();
+
+        amazonS3Client.deleteObject(deleteObjectRequest);
+        imagesRepository.delete(image);
     }
 }

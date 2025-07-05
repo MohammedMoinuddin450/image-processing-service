@@ -24,7 +24,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Service
@@ -60,8 +59,7 @@ public class imageService {
                 .contentLength(file.getSize())
                 .build();
 
-        PutObjectResponse putObjectResponse = amazonS3Client.putObject(
-                putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        amazonS3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
         String fileUrl = "https://" + bucketName + "." + r2AccountId + ".r2.cloudflarestorage.com/" + fileName;
 

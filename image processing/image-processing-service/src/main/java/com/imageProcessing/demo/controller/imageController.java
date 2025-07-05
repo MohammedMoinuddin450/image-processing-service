@@ -37,7 +37,7 @@ public class imageController {
     @GetMapping("/images/{id}")
     public ResponseEntity<?> getImage(@PathVariable String id) {
         imageResponse imageData = iService.getImageData(id);
-        return ResponseEntity.ok().body(imageData);
+        return ResponseEntity.ok().body(imageData );
     }
 
     @DeleteMapping("/images/{id}")

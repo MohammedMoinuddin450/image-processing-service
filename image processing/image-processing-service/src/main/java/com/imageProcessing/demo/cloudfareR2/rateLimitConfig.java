@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 public class rateLimitConfig {
 
     @Bean
-    public FilterRegistrationBean<RateLimitingFilter> rateLimitingFilter() {
-        FilterRegistrationBean<RateLimitingFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new RateLimitingFilter());
+    public FilterRegistrationBean<RateLimitFilter> rateLimitingFilter() {
+        FilterRegistrationBean<RateLimitFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new RateLimitFilter());
         registrationBean.addUrlPatterns("/images/*");
         return registrationBean;
     }
